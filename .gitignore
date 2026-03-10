@@ -1,0 +1,29 @@
+# Environment — NEVER commit API keys
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.ruff_cache/
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Database — local only
+*.db
+*.sqlite3
+
+# Artifacts — generated files
+artifacts/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
