@@ -1,13 +1,16 @@
 from openai import OpenAI
 from core.config import settings
 
-client = OpenAI(api_key=settings.openai_api_key)
+
+client = OpenAI(
+    api_key=settings.groq_api_key,
+    base_url="https://api.groq.com/openai/v1"
+)
 
 
 def summarize(text: str) -> str:
     """
-    Summarizing long text using an LLM sub-call.
-    Used when web search results are too long to pass directly.
+    Summarize long text using Groq LLM.
     """
     try:
         if not text or not text.strip():

@@ -3,9 +3,8 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
 
-    
-    openai_api_key: str
-    llm_model: str = "gpt-4o-mini"
+    groq_api_key: str
+    llm_model: str = "llama-3.1-8b-instant"
     llm_temperature: float = 0.2
 
     
