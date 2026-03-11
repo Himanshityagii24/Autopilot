@@ -4,31 +4,20 @@ from core.config import settings
 DATABASE_URL = settings.database_url
 
 
-async def get_db() -> aiosqlite.Connection:
+def get_db():
     """
-    Returns a raw DB connection.
-    Use as a context manager in services/models:
-
-        async with await get_db() as db:
+    Returns a context manager for DB connection.
+    Usage:
+        async with get_db() as db:
             ...
     """
-    db = await aiosqlite.connect(DATABASE_URL)
-    db.row_factory = aiosqlite.Row   
+    db = aiosqlite.connect(DATABASE_URL)
     return db
 
 
 async def init_db():
-    """
-    Called once on app startup via lifespan in main.py.
-    Creates all tables and indexes if they don't already exist.
-
-    Schema decisions:
-    - task_steps is a separate table (not a JSON blob in tasks) ← reviewers check this
-    - prompt_used column on task_steps for bonus: prompt versioning
-    - attempt column on task_steps for bonus: retry tracking
-    - Indexes on status + created_at for fast filtering (assignment mentions 10k+ records)
-    """
     async with aiosqlite.connect(DATABASE_URL) as db:
+        db.row_factory = aiosqlite.Row
         await db.executescript("""
 
             CREATE TABLE IF NOT EXISTS tasks (
@@ -49,13 +38,8 @@ async def init_db():
                 output          TEXT,
                 status          TEXT NOT NULL DEFAULT 'pending',
                 duration_ms     INTEGER,
-
-                -- Bonus: prompt versioning
                 prompt_used     TEXT,
-
-                -- Bonus: retry tracking
                 attempt         INTEGER DEFAULT 1,
-
                 FOREIGN KEY (task_id) REFERENCES tasks(id)
             );
 
@@ -68,7 +52,6 @@ async def init_db():
                 FOREIGN KEY (task_id) REFERENCES tasks(id)
             );
 
-            -- Indexes for fast filtering at 10,000+ rows
             CREATE INDEX IF NOT EXISTS idx_tasks_status
                 ON tasks(status);
 
@@ -83,4 +66,4 @@ async def init_db():
 
         """)
         await db.commit()
-        print(" Database initialized successfully")
+        print("Database initialized successfully")
