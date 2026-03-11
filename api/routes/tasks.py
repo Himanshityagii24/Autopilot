@@ -21,7 +21,6 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-# ── POST /tasks ───────────────────────────────────────────────────────────────
 
 @router.post("", response_model=TaskCreatedResponse, status_code=201)
 async def create_task(request: CreateTaskRequest):
@@ -41,7 +40,6 @@ async def create_task(request: CreateTaskRequest):
     )
 
 
-# ── GET /tasks ────────────────────────────────────────────────────────────────
 
 @router.get("", response_model=TaskListResponse)
 async def list_tasks(
@@ -99,7 +97,6 @@ async def list_tasks(
     return TaskListResponse(tasks=tasks, total=len(tasks))
 
 
-# ── GET /tasks/{task_id} ──────────────────────────────────────────────────────
 
 @router.get("/{task_id}", response_model=TaskDetailResponse)
 async def get_task_detail(task_id: str):
@@ -142,7 +139,7 @@ async def get_task_detail(task_id: str):
     )
 
 
-# ── DELETE /tasks/{task_id} ───────────────────────────────────────────────────
+
 
 @router.delete("/{task_id}", status_code=200)
 async def cancel_task(task_id: str):
@@ -161,12 +158,12 @@ async def cancel_task(task_id: str):
             detail=f"Task is already {row['status']} — cannot cancel"
         )
 
-    # Signal the agent loop to stop at next step check
+    
     cancel_event = get_cancel_event(task_id)
     if cancel_event:
         cancel_event.set()
 
-    # Update DB immediately — safe even if loop hasn't stopped yet
+   
     await delete_task(task_id)
 
     return {"message": f"Task {task_id} cancellation requested", "task_id": task_id}

@@ -6,6 +6,7 @@ from core.config import settings
 from api.routes.tasks import router as tasks_router
 from api.routes.stream import router as stream_router
 from api.routes.dag import router as dag_router
+from fastapi.middleware.cors import CORSMiddleware
 
 
 @asynccontextmanager
@@ -28,6 +29,14 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(tasks_router)
 app.include_router(stream_router)

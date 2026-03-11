@@ -4,9 +4,15 @@ import httpx
 def http_get(url: str) -> str:
     """
     Fetch raw content of a URL.
+    Auto-adds https:// if protocol is missing.
     Timeout set to 10s to prevent agent from hanging.
     """
     try:
+        
+        url = url.strip().strip("'\"")
+        if not url.startswith("http://") and not url.startswith("https://"):
+            url = "https://" + url
+
         headers = {
             "User-Agent": "Mozilla/5.0 (compatible; TaskAutopilot/1.0)"
         }
@@ -14,7 +20,6 @@ def http_get(url: str) -> str:
         with httpx.Client(timeout=10.0, follow_redirects=True) as client:
             response = client.get(url, headers=headers)
             response.raise_for_status()
-
             # Return first 3000 chars — enough context without overwhelming LLM
             return response.text[:3000]
 
