@@ -4,7 +4,11 @@ A FastAPI backend where users submit a natural language goal, an LLM agent decom
 
 ---
 
+## ScreenShots
+![alt text](image.png)
 
+## After clicking on particular task you can see Live streaming 
+![alt text](image-1.png)
 ## Quick Start
 
 ### 1. Clone and set up environment
