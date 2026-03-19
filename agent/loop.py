@@ -141,6 +141,7 @@ async def execute_agent_loop(
 
     step_outputs: dict[int, str] = {}
     failed_steps = 0 
+    was_cancelled = False
 
     try:
         await update_task_status(task_id, "running")
@@ -148,6 +149,7 @@ async def execute_agent_loop(
         for step in steps:
 
             if cancel_event.is_set():
+                was_cancelled = True
                 await update_task_status(
                     task_id,
                     status="cancelled",
@@ -279,12 +281,13 @@ async def execute_agent_loop(
                     "duration_ms": duration_ms
                 })
                 failed_steps += 1
+        if not was_cancelled:      
             if failed_steps == 0:
                await update_task_status(task_id, status="completed", completed_at=_now())
                await emit({"type": "completed", "message": "All steps completed successfully"})
             
             else:
-               await update_task_status(task_id, status="Failed", completed_at=_now())
+               await update_task_status(task_id, status="failed", completed_at=_now())
                await emit({"type": "failed", "message": f"{failed_steps} of {len(steps)} steps failed"})
         
     except Exception as e:

@@ -44,10 +44,7 @@ async def stream_task(task_id: str):
         return EventSourceResponse(replay_stream())
 
     # Task still running — stream live from queue
-    queue = stream_manager.get_queue(task_id)
-    if not queue:
-        raise HTTPException(status_code=404, detail="Stream not available for this task")
-
+    queue = stream_manager.subscribe(task_id)
     async def event_generator():
         try:
             while True:
@@ -62,6 +59,6 @@ async def stream_task(task_id: str):
         except asyncio.CancelledError:
             pass
         finally:
-            stream_manager.remove_queue(task_id)
+            stream_manager.unsubscribe(task_id, queue)
 
     return EventSourceResponse(event_generator())

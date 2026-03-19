@@ -25,9 +25,7 @@ async def start_task(goal: str) -> str:
     # Save task to DB immediately with status 'queued'
     await create_task(task_id, goal, created_at)
 
-    # Create SSE queue for this task before starting execution
-    # so client can connect to /stream immediately after POST
-    stream_manager.create_queue(task_id)
+ 
 
    
     asyncio.create_task(
@@ -99,9 +97,8 @@ async def _run_task_background(task_id: str, goal: str):
         })
 
     finally:
-        # Always signal stream is done — client knows to disconnect
         await stream_manager.publish_done(task_id)
-        # Clean up cancel event
+        stream_manager.cleanup(task_id)      # ← ADD THIS
         _cancel_events.pop(task_id, None)
 
 
