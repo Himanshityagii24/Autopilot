@@ -140,6 +140,7 @@ async def execute_agent_loop(
         cache = {}
 
     step_outputs: dict[int, str] = {}
+    failed_steps = 0 
 
     try:
         await update_task_status(task_id, "running")
@@ -176,6 +177,7 @@ async def execute_agent_loop(
                     "step": step_number, "tool": tool_name,
                     "status": "failed", "error": error_msg
                 })
+                failed_steps += 1
                 continue
 
             try:
@@ -192,6 +194,7 @@ async def execute_agent_loop(
                     "input": tool_input, "status": "failed",
                     "error": error_msg
                 })
+                failed_steps += 1
                 continue
 
             cache_key = f"{tool_name}:{tool_input}"
@@ -275,10 +278,15 @@ async def execute_agent_loop(
                     "status": "failed", "error": error_msg,
                     "duration_ms": duration_ms
                 })
-         
-        await update_task_status(task_id, status="completed", completed_at=_now())
-        await emit({"type": "completed", "message": "All steps completed successfully"})
-
+                failed_steps += 1
+            if failed_steps == 0:
+               await update_task_status(task_id, status="completed", completed_at=_now())
+               await emit({"type": "completed", "message": "All steps completed successfully"})
+            
+            else:
+               await update_task_status(task_id, status="Failed", completed_at=_now())
+               await emit({"type": "failed", "message": f"{failed_steps} of {len(steps)} steps failed"})
+        
     except Exception as e:
         await update_task_status(
             task_id, status="failed",

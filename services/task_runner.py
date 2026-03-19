@@ -48,7 +48,6 @@ async def _run_task_background(task_id: str, goal: str):
     
     cancel_event = asyncio.Event()
 
-   
     _cancel_events[task_id] = cancel_event
 
     
@@ -62,7 +61,9 @@ async def _run_task_background(task_id: str, goal: str):
             "message": "Breaking down your goal into steps..."
         })
 
-        steps, prompt_used = plan_task(goal)
+        steps, prompt_used = await asyncio.get_event_loop().run_in_executor(
+        None, plan_task, goal
+        ) 
 
         await stream_manager.publish(task_id, {
             "type": "planned",
@@ -71,7 +72,7 @@ async def _run_task_background(task_id: str, goal: str):
         })
 
         
-        async def emit(event: dict):
+        async def emit(event: dict): # Helper to emit events from agent loop. though we used publish above for planning updates, we want to give the loop a simple emit function to send updates as it excetujes steps , it reduces coupling means the loop doesn't need to know about stream_manager, it just calls emit and the caller handles how to send it to lient, so we dont have to pu       
             await stream_manager.publish(task_id, event)
 
         await execute_agent_loop(
@@ -113,4 +114,4 @@ def get_cancel_event(task_id: str) -> asyncio.Event | None:
 
 
 
-_cancel_events: dict[str, asyncio.Event] = {}
+_cancel_events: dict[str, asyncio.Event] = {}  

@@ -6,7 +6,7 @@ from typing import Optional, List
 
 class CreateTaskRequest(BaseModel):
     goal: str = Field(
-        ...,
+        ...,#required field
         min_length=1,
         description="Natural language goal for the agent to execute",
         example="Find top 3 Python frameworks and write a comparison report"

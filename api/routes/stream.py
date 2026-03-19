@@ -12,7 +12,7 @@ router = APIRouter(prefix="/tasks", tags=["Stream"])
 
 @router.get("/{task_id}/stream")
 async def stream_task(task_id: str):
-    row = await get_task(task_id)
+    row = await get_task(task_id)  
     if not row:
         raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
 
@@ -22,7 +22,7 @@ async def stream_task(task_id: str):
 
         async def replay_stream():
             for s in steps:
-                yield {
+                yield {  #yield sends one SSE event to the client.
                     "data": json.dumps({
                         "step": s["step_number"],
                         "tool": s["tool_name"],
@@ -52,7 +52,7 @@ async def stream_task(task_id: str):
         try:
             while True:
                 try:
-                    event = await asyncio.wait_for(queue.get(), timeout=120.0)
+                    event = await asyncio.wait_for(queue.get(), timeout=120.0) #here queue gets a new event from the agent loop, which is put there by stream_manager.publish() in task_runner.py. If no new event 
                     if event is None:
                         yield {"data": json.dumps({"type": "done"})}
                         break
